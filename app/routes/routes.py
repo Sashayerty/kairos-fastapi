@@ -3,7 +3,12 @@ from sqlalchemy.orm.exc import UnmappedInstanceError
 
 from app.models.courses_model import CoursesModel
 from app.models.db_session import create_session, global_init
-from app.schemas import CourseSchema, CourseToDeleteSchema, CourseToSaveSchema
+from app.schemas import (
+    CourseSchema,
+    CourseToDeleteSchema,
+    CourseToEditSchema,
+    CourseToSaveSchema,
+)
 
 global_init("./database/kairos.db")
 db_ses = create_session()
@@ -51,3 +56,8 @@ def get_list_of_courses():
         if all_courses
         else {"detail": "no courses", "count_of_courses": 0}
     )
+
+
+@kairos.post("/edit")
+def edit_course(course: CourseToEditSchema):
+    return course
