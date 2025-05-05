@@ -3,47 +3,45 @@ from sqlalchemy.orm.exc import UnmappedInstanceError
 
 from app.models.courses_model import CoursesModel
 from app.models.db_session import create_session, global_init
-from app.schemas import (
-    CourseSchema,
-    CourseToDeleteSchema,
-    CourseToEditSchema,
-    CourseToSaveSchema,
-)
+from app.schemas import Course, CourseCreate, CourseEdit, CourseSave
 
 global_init("./database/kairos.db")
 db_ses = create_session()
-kairos = APIRouter(prefix="/kairos", tags=["General Endpoints"])
+kairos = APIRouter(tags=["General Endpoints"])
 
 
 @kairos.post("/gen")
-def generate_course():
-    course = CoursesModel(theme="Python", course={})
-    db_ses.add(course)
-    db_ses.commit()
+def generate_course(course: CourseCreate):
     return {"hello": "world"}
 
 
-@kairos.put("/save")
-def put_course_to_database(course: CourseToSaveSchema):
-    return course
+@kairos.post("/save")
+def save_course_to_database(course: CourseSave):
+    try:
+        course_to_save = CoursesModel.from_pydantic(course=course)
+        db_ses.add(course_to_save)
+        db_ses.commit()
+        return {"detail": "data stashed successfully"}
+    except Exception as e:
+        return {"detail": str(e)}
 
 
 @kairos.post("/check")
-def check_parameters_of_course(course_params: CourseSchema):
+def check_parameters_of_course(course_params: Course):
     return course_params
 
 
-@kairos.delete("/delete")
-def delete_course_by_id(course: CourseToDeleteSchema):
+@kairos.delete("/delete/{course_id}")
+def delete_course(course_id: int):
     try:
         course_to_delete = (
-            db_ses.query(CoursesModel).filter_by(id=course.id).first()
+            db_ses.query(CoursesModel).filter_by(id=course_id).first()
         )
         db_ses.delete(course_to_delete)
         db_ses.commit()
         return {"detail": "success"}
     except UnmappedInstanceError:
-        return {"detail": f"no course with id {course.id}"}
+        return {"detail": f"no course with id {course_id}"}
     except Exception as e:
         return {"detail": str(e)}
 
@@ -58,6 +56,17 @@ def get_list_of_courses():
     )
 
 
-@kairos.post("/edit")
-def edit_course(course: CourseToEditSchema):
+@kairos.put("/edit/{course_id}")
+def edit_course(course_id: int, course: CourseEdit):
     return course
+
+
+@kairos.get("/course/{course_id}")
+def get_course(course_id: int):
+    try:
+        course = db_ses.query(CoursesModel).filter_by(id=course_id).first()
+        if course:
+            return course
+        return {"detail": f"no course with id {course_id}"}
+    except Exception as e:
+        return {"detail": str(e)}
