@@ -1,1 +1,1 @@
-from app.schemas.responses.save import SaveResponse
+from app.schemas.responses.response import ResponseSchema

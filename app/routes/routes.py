@@ -1,10 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm.exc import UnmappedInstanceError
 from sqlmodel import Session, SQLModel, create_engine
 
 from app.ai_core import censor, cool_prompt, get_theory, plan
 from app.models import Courses
-from app.schemas import Course, CourseCreate, CourseEdit, CourseList
+from app.schemas import (
+    Course,
+    CourseCreate,
+    CourseEdit,
+    CourseList,
+    ResponseSchema,
+)
 
 kairos = APIRouter(tags=["General Endpoints"])
 sqlite_file_name = "kairos.db"
