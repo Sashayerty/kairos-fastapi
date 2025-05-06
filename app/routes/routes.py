@@ -5,7 +5,7 @@ from sqlmodel import Session, SQLModel, create_engine
 from app.models import Courses
 
 # from app.models.db_session import create_session, global_init
-from app.schemas import Course, CourseCreate, CourseEdit, CourseSave
+from app.schemas import Course, CourseCreate, CourseEdit
 
 # from app.models.courses_model import CoursesModel
 
@@ -40,7 +40,8 @@ def generate_course(course: CourseCreate):
 
 @kairos.post("/save")
 def save_course_to_database(
-    course: Courses, session: Session = Depends(get_session)
+    course: Courses,
+    session: Session = Depends(get_session),
 ):
     try:
         course_to_save = course
@@ -57,13 +58,16 @@ def check_parameters_of_course(course_params: Course):
 
 
 @kairos.delete("/delete/{course_id}")
-def delete_course(course_id: int):
+def delete_course(
+    course_id: int,
+    session: Session = Depends(get_session),
+):
     try:
         course_to_delete = (
-            db_ses.query(CoursesModel).filter_by(id=course_id).first()
+            session.query(Courses).filter_by(id=course_id).first()
         )
-        db_ses.delete(course_to_delete)
-        db_ses.commit()
+        session.delete(course_to_delete)
+        session.commit()
         return {"detail": "success"}
     except UnmappedInstanceError:
         return {"detail": f"no course with id {course_id}"}
@@ -72,8 +76,10 @@ def delete_course(course_id: int):
 
 
 @kairos.get("/list")
-def get_list_of_courses():
-    all_courses = db_ses.query(CoursesModel).all()
+def get_list_of_courses(
+    session: Session = Depends(get_session),
+):
+    all_courses = session.query(Courses).all()
     return (
         {"courses": all_courses, "count_of_courses": len(all_courses)}
         if all_courses
@@ -87,9 +93,12 @@ def edit_course(course_id: int, course: CourseEdit):
 
 
 @kairos.get("/course/{course_id}")
-def get_course(course_id: int):
+def get_course(
+    course_id: int,
+    session: Session = Depends(get_session),
+):
     try:
-        course = db_ses.query(CoursesModel).filter_by(id=course_id).first()
+        course = session.query(Courses).filter_by(id=course_id).first()
         if course:
             return course
         return {"detail": f"no course with id {course_id}"}

@@ -10,6 +10,5 @@ dependencies = [
     "flask-login>=0.6.3",
     "flask-restful>=0.3.10",
     "mistralai>=1.7.0",
-    "sqlalchemy>=2.0.40",
     "sqlmodel>=0.0.24",
 ]
