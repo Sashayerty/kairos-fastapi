@@ -5,7 +5,13 @@ from sqlmodel import Session, SQLModel, create_engine
 from app.models import Courses
 
 # from app.models.db_session import create_session, global_init
-from app.schemas import Course, CourseCreate, CourseEdit
+from app.schemas import (
+    Course,
+    CourseCreate,
+    CourseEdit,
+    CourseList,
+    CourseSave,
+)
 
 # from app.models.courses_model import CoursesModel
 
@@ -44,8 +50,7 @@ def save_course_to_database(
     session: Session = Depends(get_session),
 ):
     try:
-        course_to_save = course
-        session.add(course_to_save)
+        session.add(course)
         session.commit()
         return {"detail": "data stashed successfully"}
     except Exception as e:
@@ -63,9 +68,7 @@ def delete_course(
     session: Session = Depends(get_session),
 ):
     try:
-        course_to_delete = (
-            session.query(Courses).filter_by(id=course_id).first()
-        )
+        course_to_delete = session.get(Courses, course_id)
         session.delete(course_to_delete)
         session.commit()
         return {"detail": "success"}
@@ -75,7 +78,10 @@ def delete_course(
         return {"detail": str(e)}
 
 
-@kairos.get("/list")
+@kairos.get(
+    "/list",
+    response_model=CourseList,
+)
 def get_list_of_courses(
     session: Session = Depends(get_session),
 ):
@@ -83,7 +89,7 @@ def get_list_of_courses(
     return (
         {"courses": all_courses, "count_of_courses": len(all_courses)}
         if all_courses
-        else {"detail": "no courses", "count_of_courses": 0}
+        else {"courses": "no courses", "count_of_courses": 0}
     )
 
 
@@ -92,7 +98,10 @@ def edit_course(course_id: int, course: CourseEdit):
     return course
 
 
-@kairos.get("/course/{course_id}")
+@kairos.get(
+    "/course/{course_id}",
+    response_model=Course,
+)
 def get_course(
     course_id: int,
     session: Session = Depends(get_session),

@@ -2,9 +2,9 @@ from pydantic import BaseModel, Field
 
 
 class Course(BaseModel):
-    id: int = Field(gt=0)
+    id: int
     theme: str = Field(description="Theme of course", examples=["Python"])
-    desires: str | None = Field(
+    desires_of_user: str | None = Field(
         description="Desires of user", examples=["Basics of web developing"]
     )
     course: dict[str, dict[str, str]] = Field(
@@ -12,7 +12,7 @@ class Course(BaseModel):
         examples=[
             {
                 "1": {"title": "Python Basics", "data": "..."},
-                "2": {"title": "Python and Web", "data": "..."},
+                "2": {"title": "Python in Web", "data": "..."},
             }
         ],
     )
