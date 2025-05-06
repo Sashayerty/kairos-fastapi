@@ -1,7 +1,9 @@
+import json
+
 from app.mistral_ai_initializer import mistral_ai_initializer
 
 
-def plan(prompt_from_llm: str) -> str:
+def plan(prompt_from_llm: str) -> dict:
     """Функция для составления плана курса по промпту от llm
 
     Args:
@@ -38,4 +40,4 @@ def plan(prompt_from_llm: str) -> str:
             "type": "json_object",
         },
     )
-    return result
+    return json.loads(result)

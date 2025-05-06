@@ -1,9 +1,11 @@
+import json
+
 from app.mistral_ai_initializer import mistral_ai_initializer
 
 
 def get_theory(
     prompt_from_prompt_agent: str, plan: str, theory: str = None
-) -> str:
+) -> dict:
     """Функция для генерации итогового результата.
 
     Args:
@@ -53,4 +55,4 @@ def get_theory(
         response_format={"type": "json_object"},
         timeout_ms=180000,
     )
-    return result
+    return json.loads(result)

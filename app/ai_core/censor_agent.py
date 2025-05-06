@@ -1,7 +1,9 @@
+import json
+
 from app.mistral_ai_initializer import mistral_ai_initializer
 
 
-def censor(theme_from_user: str, desires: str = None) -> str:
+def censor(theme_from_user: str, desires: str = None) -> dict:
     """Функция для цензуры темы пользователя.
 
     Args:
@@ -42,4 +44,4 @@ def censor(theme_from_user: str, desires: str = None) -> str:
             "type": "json_object",
         },
     )
-    return response
+    return json.loads(response)

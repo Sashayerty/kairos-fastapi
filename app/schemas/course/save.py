@@ -6,6 +6,11 @@ class CourseSave(BaseModel):
     desires: str | None = Field(
         description="Desires of user", examples=["Basics of web developing"]
     )
+    description_of_user: str | None = Field(
+        default=None,
+        description="Description of user",
+        examples=["Noob in programming"],
+    )
     course: dict[str, dict[str, str]] = Field(
         description="Course dict",
         examples=[
