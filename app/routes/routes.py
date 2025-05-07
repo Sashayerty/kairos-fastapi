@@ -2,15 +2,9 @@ from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm.exc import UnmappedInstanceError
 from sqlmodel import Session, SQLModel, create_engine
 
-from app.ai_core import censor, cool_prompt, get_theory, plan
+from app.ai_core import censor, cool_prompt, edit_course, get_theory, plan
 from app.models import Courses
-from app.schemas import (
-    Course,
-    CourseCreate,
-    CourseEdit,
-    CourseList,
-    ResponseSchema,
-)
+from app.schemas import Course, CourseCreate, CourseEdit, CourseList
 
 kairos = APIRouter(tags=["General Endpoints"])
 sqlite_file_name = "kairos.db"
@@ -84,24 +78,28 @@ def save_course_to_database(
         return {"detail": str(e)}
 
 
-@kairos.delete("/delete/{course_id}")
+@kairos.delete("/del/{course_id}")
 def delete_course(
     course_id: int,
+    response: Response,
     session: Session = Depends(get_session),
 ):
+    """Delete course by id from DB"""
     try:
         course_to_delete = session.get(Courses, course_id)
         session.delete(course_to_delete)
         session.commit()
         return {"detail": "success"}
     except UnmappedInstanceError:
+        response.status_code = status.HTTP_400_BAD_REQUEST
         return {"detail": f"no course with id {course_id}"}
     except Exception as e:
+        response.status_code = status.HTTP_400_BAD_REQUEST
         return {"detail": str(e)}
 
 
 @kairos.get(
-    "/list",
+    "/ls",
     response_model=CourseList,
 )
 def get_list_of_courses(
@@ -115,13 +113,34 @@ def get_list_of_courses(
     )
 
 
-@kairos.put("/edit/{course_id}")
-def edit_course(course_id: int, course: CourseEdit):
+@kairos.put(
+    "/edit/{course_id}",
+)
+def edit_course_by_id(
+    course_id: int,
+    desires: CourseEdit,
+    response: Response,
+    session: Session = Depends(get_session),
+):
+    """Edit course by id without committing in DB"""
+    try:
+        course = session.get(Courses, course_id)
+        if not course:
+            response.status_code = status.HTTP_400_BAD_REQUEST
+            return {"detail": f"no course with id {course_id}"}
+        edited_course = edit_course(
+            course=course.course,
+            user_edits=desires.desires,
+        )
+    except Exception as e:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {"detail": str(e)}
+    course.course = edited_course
     return course
 
 
 @kairos.get(
-    "/course/{course_id}",
+    "/get/{course_id}",
     response_model=Course,
 )
 def get_course(
