@@ -1,15 +1,16 @@
+from app import config
 from app.mistral_ai_initializer import mistral_ai_initializer
 
 
-def cool_prompt(
-    users_theme: str,
+def gen_prompt(
+    theme: str,
     desires: str = None,
     description_of_user: str = None,
 ) -> str:
     """Функция для обогащения темы юзера до промпта
 
     Args:
-        users_theme (str): Тема пользователя
+        theme (str): Тема пользователя
         desires (str, optional): Пожелания пользователя. Defaults to None.
         description_of_user (str): Описание пользователя. Defaults to None.
 
@@ -27,7 +28,7 @@ def cool_prompt(
         описания не стоит.
 
         Итак, твоя задача:
-        Указать роль и задачу для LLM с учетом темы курса пользователя: {users_theme}. Указать пожелания пользователя,
+        Указать роль и задачу для LLM с учетом темы курса пользователя: {theme}. Указать пожелания пользователя,
         если они есть: {desires}. Учесть описание пользователя, если оно может понадобится для курса.
         Описание: {description_of_user}.
 
@@ -54,6 +55,7 @@ def cool_prompt(
                 "content": prompt,
             }
         ],
+        model=config.MISTRAL_DEFAULT_MODEL,
         temperature=1.0,
     )
     return result

@@ -2,13 +2,19 @@ from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm.exc import UnmappedInstanceError
 from sqlmodel import Session, SQLModel, create_engine
 
-from app.ai_core import censor, cool_prompt, edit_course, get_theory, plan
+from app import config
+from app.ai_core import (
+    check_course_params,
+    edit_course,
+    gen_course,
+    gen_plan,
+    gen_prompt,
+)
 from app.models import Courses
 from app.schemas import Course, CourseCreate, CourseEdit, CourseList
 
 kairos = APIRouter(tags=["General Endpoints"])
-sqlite_file_name = "kairos.db"
-sqlite_url = f"sqlite:///database/{sqlite_file_name}"
+sqlite_url = f"sqlite:///{config.DATABASE_PATH}"
 connect_args = {"check_same_thread": False}
 engine = create_engine(sqlite_url, connect_args=connect_args)
 
@@ -37,24 +43,24 @@ def generate_course(
         course.desires_of_user,
         course.description_of_user,
     )
-    from_censor = censor(
-        theme_from_user=theme,
+    from_censor = check_course_params(
+        theme=theme,
         desires=desires,
     )
     if not from_censor["data"]:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {"detail": from_censor["reason"]}
-    prompt = cool_prompt(
-        users_theme=theme,
+    prompt = gen_prompt(
+        theme=theme,
         desires=desires,
         description_of_user=description_of_user,
     )
-    course_plan = plan(
-        prompt_from_llm=prompt,
+    plan = gen_plan(
+        prompt=prompt,
     )
-    created = get_theory(
-        prompt_from_prompt_agent=prompt,
-        plan=course_plan,
+    created = gen_course(
+        prompt=prompt,
+        plan=plan,
     )
     created_course = Course(
         theme=theme,
@@ -130,7 +136,7 @@ def edit_course_by_id(
             return {"detail": f"no course with id {course_id}"}
         edited_course = edit_course(
             course=course.course,
-            user_edits=desires.desires,
+            desires=desires.desires,
         )
     except Exception as e:
         response.status_code = status.HTTP_400_BAD_REQUEST

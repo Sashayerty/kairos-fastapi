@@ -1,13 +1,14 @@
 import json
 
+from app import config
 from app.mistral_ai_initializer import mistral_ai_initializer
 
 
-def censor(theme_from_user: str, desires: str = None) -> dict:
+def check_course_params(theme: str, desires: str = None) -> dict:
     """Функция для цензуры темы пользователя.
 
     Args:
-        theme_from_user (str): Тема пользователя
+        theme (str): Тема курса
         desires (str, optional): Пожелания пользователя. Defaults to None.
 
     Returns:
@@ -29,7 +30,7 @@ def censor(theme_from_user: str, desires: str = None) -> dict:
     связана с 18+ контентом, правительством, религией, межнациональной рознью, опасными для жизни
     человека действиями, химикатами и т.п. Если тема и пожелания никак не связана с перечисленным, то ты пропускаешь ее
     далее,
-    иначе - не пропускаешь. Тема пользователя: {theme_from_user}. Пожелания пользователя: {desires} Пример твоего
+    иначе - не пропускаешь. Тема пользователя: {theme}. Пожелания пользователя: {desires} Пример твоего
     ответа: {json_example}. Причина должна быть небольшая и учти то, что ты отвечаешь напрямую пользователю."""
     client = mistral_ai_initializer()
     response = client.message(
@@ -39,6 +40,7 @@ def censor(theme_from_user: str, desires: str = None) -> dict:
                 "content": prompt,
             }
         ],
+        model=config.MISTRAL_DEFAULT_MODEL,
         temperature=0,
         response_format={
             "type": "json_object",
